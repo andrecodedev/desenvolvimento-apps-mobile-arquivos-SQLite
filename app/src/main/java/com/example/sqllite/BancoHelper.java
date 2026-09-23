@@ -1,9 +1,10 @@
+package com.example.sqllite;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
 public class BancoHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "meubanco.db";
     private static final int DATABASE_VERSION = 1;
@@ -42,6 +43,19 @@ public class BancoHelper extends SQLiteOpenHelper {
 
     public Cursor listarUsuarios(){
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM" + TABLE_NAME, null);
+        return db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+    }
+
+    public int atualizarUsuario(int id, String nome, String email){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NOME, nome);
+        values.put(COLUMN_EMAIL,email);
+        return db.update(TABLE_NAME, values, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
+    }
+
+    public int excluirUsuario(int id){
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_NAME, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
     }
 }

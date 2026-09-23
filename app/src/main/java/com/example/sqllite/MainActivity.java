@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> listaUsuarios;
     ArrayList<Integer> listaIds;
 
+    int idUsuarioEdicao = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,13 +56,63 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            databaseHelper.inserirUsuario(nome, email);
-            edtNome.setText("");
-            edtEmail.setText("");
-            carregarUsuarios();
+            if (idUsuarioEdicao == -1) {
+                // Inserir novo usuário
+                long resultado = databaseHelper.inserirUsuario(nome, email);
+                if (resultado != -1) {
+                    Toast.makeText(this, "Usuário salvo!", Toast.LENGTH_SHORT).show();
+                    limparFormulario();
+                    carregarUsuarios();
+                } else {
+                    Toast.makeText(this, "Erro ao salvar!", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // Atualizar usuário existente
+                int resultado = databaseHelper.atualizarUsuario(idUsuarioEdicao, nome, email);
+                if (resultado > 0) {
+                    Toast.makeText(this, "Usuário atualizado!", Toast.LENGTH_SHORT).show();
+                    limparFormulario();
+                    carregarUsuarios();
+                } else {
+                    Toast.makeText(this, "Erro ao atualizar!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        listViewUsuarios.setOnItemClickListener((parent, view, position, id) -> {
+            idUsuarioEdicao = listaIds.get(position);
+            String item = listaUsuarios.get(position);
+            String[] partes = item.split(" - ");
+            if (partes.length >= 3) {
+                edtNome.setText(partes[1]);
+                edtEmail.setText(partes[2]);
+            }
+            btnSalvar.setText("Atualizar");
+        });
+
+        listViewUsuarios.setOnItemLongClickListener((parent, view, position, id) -> {
+            int idExcluir = listaIds.get(position);
+            int deletado = databaseHelper.excluirUsuario(idExcluir);
+            if (deletado > 0) {
+                Toast.makeText(this, "Usuário excluído!", Toast.LENGTH_SHORT).show();
+                if (idUsuarioEdicao == idExcluir) {
+                    limparFormulario();
+                }
+                carregarUsuarios();
+            } else {
+                Toast.makeText(this, "Erro ao excluir!", Toast.LENGTH_SHORT).show();
+            }
+            return true;
         });
 
         carregarUsuarios();
+    }
+
+    private void limparFormulario() {
+        edtNome.setText("");
+        edtEmail.setText("");
+        idUsuarioEdicao = -1;
+        btnSalvar.setText("Salvar");
     }
 
     private void carregarUsuarios() {
